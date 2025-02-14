@@ -11,13 +11,30 @@ const Download_Photo: React.FC<DownloadPhotoProps> = ({ capturedImages = [] }) =
   const handleDownload = () => {
     if (canvasRef.current) {
       html2canvas(canvasRef.current, { useCORS: true }).then((canvas) => {
-        const link = document.createElement("a");
-        link.href = canvas.toDataURL("image/jpeg");
-        link.download = "valentines_booth_image.jpg";
-        link.click();
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+  
+            // Set attributes for download
+            link.href = url;
+            link.download = "valentines_booth_image.png";
+  
+            // Mobile fix: Append link to the body before clicking
+            document.body.appendChild(link);
+            link.click();
+            
+            // Cleanup
+            URL.revokeObjectURL(url);
+            document.body.removeChild(link);
+          } else {
+            alert("Failed to generate the image. Please try again.");
+          }
+        }, "image/png"); // Using PNG for better compatibility
       });
     }
   };
+  
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-[#BE3144] p-5 border-2 rounded-2xl pb-2.5">
