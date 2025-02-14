@@ -10,30 +10,42 @@ const Download_Photo: React.FC<DownloadPhotoProps> = ({ capturedImages = [] }) =
 
   const handleDownload = () => {
     if (canvasRef.current) {
-      html2canvas(canvasRef.current, { useCORS: true }).then((canvas) => {
+      html2canvas(canvasRef.current, { useCORS: true, scale: 2 }).then((canvas) => {
         canvas.toBlob((blob) => {
           if (blob) {
-            const link = document.createElement("a");
             const url = URL.createObjectURL(blob);
-  
-            // Set attributes for download
+            const link = document.createElement("a");
             link.href = url;
             link.download = "valentines_booth_image.png";
   
-            // Mobile fix: Append link to the body before clicking
+            // Append link to the body
             document.body.appendChild(link);
-            link.click();
-            
+  
+            // Detect if it's an iOS device
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  
+            if (isIOS) {
+              // Open in a new tab (workaround for Safari)
+              window.open(url, "_blank");
+            } else {
+              // Normal download
+              link.click();
+            }
+  
             // Cleanup
-            URL.revokeObjectURL(url);
-            document.body.removeChild(link);
+            setTimeout(() => {
+              URL.revokeObjectURL(url);
+              document.body.removeChild(link);
+            }, 1000);
           } else {
             alert("Failed to generate the image. Please try again.");
           }
-        }, "image/png"); // Using PNG for better compatibility
+        }, "image/png");
       });
     }
   };
+  
+  
   
 
   return (
