@@ -9,41 +9,41 @@ const Download_Photo: React.FC<DownloadPhotoProps> = ({ capturedImages = [] }) =
   const canvasRef = useRef<HTMLDivElement>(null);
 
   const handleDownload = () => {
-    if (canvasRef.current) {
-      html2canvas(canvasRef.current, { useCORS: true, scale: 2 }).then((canvas) => {
+    if (!canvasRef.current) return;
+  
+    html2canvas(canvasRef.current, { useCORS: true, scale: 2 })
+      .then((canvas) => {
         canvas.toBlob((blob) => {
-          if (blob) {
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.href = url;
-            link.download = "valentines_booth_image.png";
-  
-            // Append link to the body
-            document.body.appendChild(link);
-  
-            // Detect if it's an iOS device
-            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-  
-            if (isIOS) {
-              // Open in a new tab (workaround for Safari)
-              window.open(url, "_blank");
-            } else {
-              // Normal download
-              link.click();
-            }
-  
-            // Cleanup
-            setTimeout(() => {
-              URL.revokeObjectURL(url);
-              document.body.removeChild(link);
-            }, 1000);
-          } else {
+          if (!blob) {
             alert("Failed to generate the image. Please try again.");
+            return;
           }
+  
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.href = url;
+          link.setAttribute("download", "valentines_booth_image.png");
+  
+          // Check if the device is mobile
+          const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  
+          if (isMobile) {
+            // Special workaround for mobile devices
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+          } else {
+            // Normal download for desktop
+            link.click();
+          }
+  
+          // Cleanup URL after a short delay
+          setTimeout(() => URL.revokeObjectURL(url), 1000);
         }, "image/png");
-      });
-    }
+      })
+      .catch((err) => console.error("html2canvas error:", err));
   };
+  
   
   
   
